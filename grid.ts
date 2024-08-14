@@ -231,7 +231,7 @@ let	txb = new TransactionBlock();
 			accountCap,
 			txb,
 			i);
-			orderstates[i]=1;
+			orderstates[i]=-1;
 			console.log("补充Ask单:"+(lowerprice+i*pricegap)+"当前最低Ask价格:"+Askprice);
 			flag=1;
 		}

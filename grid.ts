@@ -200,7 +200,7 @@ let	txb = new TransactionBlock();
 	sender = account.getPublicKey();
 	txb.setSender(sender);
 	while (i<gridnum){
-		if ((lowerprice+i*pricegap-lastBidprice)*(lowerprice+i*pricegap-Bidprice)<0 | Math.abs(lowerprice+i*pricegap-Bidprice)<0.0001 | Math.abs(lowerprice+i*pricegap-Askprice)<0.0001){
+		if ((lowerprice+i*pricegap-lastBidprice)*(lowerprice+i*pricegap-Bidprice)<0 |( Math.abs(lowerprice+i*pricegap-Bidprice)<0.0001 & orderstates[i]==-1)| (Math.abs(lowerprice+i*pricegap-lastBidprice)<0.0001  & orderstates[i]==1 & lastBidprice>Bidprice)){
 		orderstates[i]=0;
 		}
 		if (orderstates[i]==0 & Bidprice-lowerprice-i*pricegap>pricegap){

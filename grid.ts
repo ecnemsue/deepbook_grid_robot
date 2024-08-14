@@ -240,6 +240,7 @@ let	txb = new TransactionBlock();
 	}
 	
 	if (flag==1){
+		txb.setGasBudget(1000000000);
 		await SignAndSubmitTXB(txb, account.client, account.keypair);
 	}
 	

@@ -125,12 +125,14 @@ txb.setSender(sender);
 const lowerprice=0.93;//网格运行最低价格
 const gridnum=10;//网格数量
 const gridamount=1 * 10 **9;//每网格下单的SUI的数量
+const amount=gridamount/10 **9;
 const pricegap=0.01;//相邻网格之间的价差
 const upperprice=lowerprice+gridnum*pricegap//网格运行最高价格
 const accountCap='0x770cbeb75fd2bd48e85e91717b0f4672ac0831e05d71c8be7a9abd4938c4586f'; //托管子账户地址，可以去CETUS上DEEPBOOK的UI里查看地址，并存入代币
 const expireTimestamp=4877104494842;//过期时间:2124年
 const sleepperiod=3500; //循环周期：3.5秒
 let i=0;
+let j=0;
 var orderstates:number[] = new Array(gridnum)
 
 
@@ -194,13 +196,15 @@ BidPrice=Number(result_temp.bestBidPrice)*0.000001
 AskPrice=Number(result_temp.bestBidPrice)*0.000001
 console.log("当前Bid价格"+BidPrice+",Ask价格"+AskPrice);
 
-if (BidPrice>lowerprice & AskPrice<upperprice){
+if (BidPrice>lowerprice-pricegap*2 & AskPrice<upperprice+pricegap*2){
 	i=0;
 let	txb = new TransactionBlock();
 	sender = account.getPublicKey();
 	txb.setSender(sender);
 	while (i<gridnum){
-		if ((lowerprice+i*pricegap<AskPrice & orderstates[i]==-1)| ( orderstates[i]==1 & lowerprice+i*pricegap>Bidprice)){
+		if ((lowerprice+i*pricegap<AskPrice & orderstates[i]==-1)| ( orderstates[i]==1 & lowerprice+i*pricegap>BidPrice)){
+		j+=1;
+		console.log((orderstates[i]==1?"Bid单:":"Ask单:")+(lowerprice+i*pricegap)+"已成交，总成交量:"+j*amount);
 		orderstates[i]=0;
 		}
 		if (orderstates[i]==0 & Bidprice-lowerprice-i*pricegap>pricegap){
@@ -219,7 +223,7 @@ let	txb = new TransactionBlock();
 			console.log("补充Bid单:"+(lowerprice+i*pricegap)+"当前最高Bid价格:"+Bidprice);
 			flag=1;
 		}
-		if (orderstates[i]==0 & lowerprice+i*pricegap-Askprice>pricegap){
+		if (orderstates[i]==0 & lowerprice+i*pricegap-AskPrice>pricegap){
 		placeLimitOrder(
 			SUI_COIN_TYPE,
 			USDC_COIN_TYPE,

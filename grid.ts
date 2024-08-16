@@ -143,7 +143,7 @@ console.log("已经清除所有挂单");
 
 const result = await getMarketPrice("0x4405b50d791fd3346754e8171aaab6bc2ed26c2c46efdd033c14b30ae507ac33",account,client_sui);
 let BidPrice=Number(result.bestBidPrice)*0.000001
-let AskPrice=Number(result.bestBidPrice)*0.000001
+let AskPrice=Number(result.bestAskPrice)*0.000001
 console.log("当前Bid价格"+BidPrice+",Ask价格"+AskPrice);
 let lastBidprice=BidPrice;
 let lastAskprice=AskPrice;
@@ -191,10 +191,18 @@ let flag=0;
 
 //网格循环
 while (true){
-let result_temp = await getMarketPrice("0x4405b50d791fd3346754e8171aaab6bc2ed26c2c46efdd033c14b30ae507ac33",account,client_sui);
-BidPrice=Number(result_temp.bestBidPrice)*0.000001
-AskPrice=Number(result_temp.bestBidPrice)*0.000001
-console.log("当前Bid价格"+BidPrice+",Ask价格"+AskPrice);
+try{
+	let result_temp = await getMarketPrice("0x4405b50d791fd3346754e8171aaab6bc2ed26c2c46efdd033c14b30ae507ac33",account,client_sui);
+	BidPrice=Number(result_temp.bestBidPrice)*0.000001
+	AskPrice=Number(result_temp.bestAskPrice)*0.000001
+	console.log("当前Bid价格"+BidPrice+",Ask价格"+AskPrice);
+} 
+catch (e:any){
+    console.log(e,'Network error')
+	BidPrice=0;
+	AskPrice=0;
+}
+
 
 if (BidPrice>lowerprice-pricegap*2 & AskPrice<upperprice+pricegap*2){
 	i=0;
@@ -220,7 +228,7 @@ let	txb = new TransactionBlock();
 			txb,
 			i);
 			orderstates[i]=1;
-			console.log("补充Bid单:"+(lowerprice+i*pricegap)+"当前最高Bid价格:"+Bidprice);
+			console.log("补充Bid单:"+(lowerprice+i*pricegap)+"当前最高Bid价格:"+BidPrice);
 			flag=1;
 		}
 		if (orderstates[i]==0 & lowerprice+i*pricegap-AskPrice>pricegap){
@@ -236,7 +244,7 @@ let	txb = new TransactionBlock();
 			txb,
 			i);
 			orderstates[i]=-1;
-			console.log("补充Ask单:"+(lowerprice+i*pricegap)+"当前最低Ask价格:"+Askprice);
+			console.log("补充Ask单:"+(lowerprice+i*pricegap)+"当前最低Ask价格:"+AskPrice);
 			flag=1;
 		}
 		
@@ -244,9 +252,15 @@ let	txb = new TransactionBlock();
 	}
 	
 	if (flag==1){
-		txb.setGasBudget(1000000000);
-		await SignAndSubmitTXB(txb, account.client, account.keypair);
-	}
+			txb.setGasBudget(1000000000);
+			try{
+				await SignAndSubmitTXB(txb, account.client, account.keypair);
+				} 
+			catch (e:any){
+				console.log(e,'Network error')
+				}
+	
+		}
 	
 }
 flag=0;

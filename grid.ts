@@ -106,7 +106,7 @@ async function cancel_all_orders(poolId: string,account,client_sui,accountCap) {
 
 
 const dex = new Dex("https://fullnode.mainnet.sui.io:443")
-const mnemonic = "scissors priority envelope ....";//主账户钱包助记词
+const mnemonic = "scissors envelope ....";//主账户钱包助记词
 const client = new NAVISDKClient({mnemonic: mnemonic, networkType: "mainnet", numberOfAccounts: 1});
 const client_sui = new SuiClient({ url: getFullnodeUrl('mainnet') });
 let txb = new TransactionBlock();

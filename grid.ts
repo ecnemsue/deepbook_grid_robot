@@ -102,7 +102,33 @@ async function cancel_all_orders(poolId: string,account,client_sui,accountCap) {
 	
 	return 1;
 }
-
+async function list_open_orders(poolId: string,account,client_sui,accountCap) {
+		const txb = new TransactionBlock();
+		txb.moveCall({
+			typeArguments: [SUI_COIN_TYPE,USDC_COIN_TYPE],
+			target: `0xdee9::clob_v2::list_open_orders`,
+			arguments: [txb.object(poolId),
+			txb.object(accountCap),
+			],
+		});
+	sender=account.getPublicKey();
+	txb.setSender(sender);
+	txb.setGasBudget(1000000000);
+	const Order = bcs.struct('Order', {
+	orderId: bcs.u64(),
+	clientOrderId: bcs.u64(),
+	price: bcs.u64(),
+	originalQuantity: bcs.u64(),
+	quantity: bcs.u64(),
+	isBid: bcs.bool(),
+	owner: bcs.u256(),
+	expireTimestamp: bcs.u64(),
+	selfMatchingPrevention: bcs.u8(),
+});
+	const result=(await client_sui.devInspectTransactionBlock({transactionBlock:txb, sender: sender}));
+	let anb=bcs.vector(Order).parse(Uint8Array.from(result.results[0].returnValues[0][0]));
+	return anb;
+}
 
 const dex = new Dex("https://fullnode.mainnet.sui.io:443")
 const mnemonic = "scissors envelope ....";//主账户钱包助记词
@@ -192,8 +218,8 @@ let flag=0;
 while (true){
 try{
 	let result_temp = await getMarketPrice("0x4405b50d791fd3346754e8171aaab6bc2ed26c2c46efdd033c14b30ae507ac33",account,client_sui);
-	BidPrice=Number(result_temp.bestBidPrice)*0.000001
-	AskPrice=Number(result_temp.bestAskPrice)*0.000001
+	BidPrice=(Number(result_temp.bestBidPrice)*0.000001).toFixed(5)
+	AskPrice=(Number(result_temp.bestAskPrice)*0.000001).toFixed(5)
 	console.log("当前Bid价格"+BidPrice+",Ask价格"+AskPrice);
 } 
 catch (e:any){
@@ -262,6 +288,8 @@ let	txb = new TransactionBlock();
 		}
 	
 }
+
+
 flag=0;
 lastBidprice=BidPrice;
 lastAskprice=AskPrice;

@@ -22,7 +22,6 @@ import { CoinInfo, Pool, PoolConfig, OptionType } from 'navi-sdk/src/types';
 dotenv.config();
 import { Dex } from "kriya-dex-sdk/dist/sdk/dex";
 import { setTimeout } from 'timers/promises';
-import { normalizeSuiObjectId } from '@mysten/sui.js/utils';
 
 
 const SUI_COIN_TYPE = "0x2::sui::SUI";

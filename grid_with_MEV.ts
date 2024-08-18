@@ -308,7 +308,7 @@ let	txb = new TransactionBlock();
 			console.log("补充Bid单:"+(lowerprice+i*pricegap)+"当前最高Bid价格:"+BidPrice);
 			flag=1;
 		}
-		if (orderstates[i]==0 & i!=lastfinishnu & base_a> gridamount  & i-1>=0&((lowerprice+i*pricegap-AskPrice>pricegap+mev[i-1]*0.15*pricegap)| lowerprice+i*pricegap-AskPrice>pricegap*0.7 &orderstates[i-1]==0)){
+		if (orderstates[i]==0 & i!=lastfinishnum & base_a> gridamount  & i-1>=0&((lowerprice+i*pricegap-AskPrice>pricegap+mev[i-1]*0.15*pricegap)| lowerprice+i*pricegap-AskPrice>pricegap*0.7 &orderstates[i-1]==0)){
 		placeLimitOrder(
 			SUI_COIN_TYPE,
 			USDC_COIN_TYPE,

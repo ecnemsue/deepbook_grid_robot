@@ -61,7 +61,7 @@ async function placeLimitOrder(
         arguments: [
             txb.object(poolId),
 			txb.pure(orderID),
-            txb.pure(Math.floor(price * 1000000)),
+            txb.pure(Math.floor(Number(price.toFixed(4)) * 1000000)),
             txb.pure(quantity),
 			txb.pure(selfMatchingPrevention),
             txb.pure(isBid),

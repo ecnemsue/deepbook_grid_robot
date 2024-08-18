@@ -189,6 +189,7 @@ const accountCap='0x770cbeb75fd2bd48e85e91717b0f4672ac0831e05d71c8be7a9abd4938c4
 const expireTimestamp=1773961013385;//过期时间
 const sleepperiod=2500; //循环周期：2.5秒
 const MEVmode=1;  //开启MEV模式
+const poolid='0x4405b50d791fd3346754e8171aaab6bc2ed26c2c46efdd033c14b30ae507ac33'//SUI-USDC交易池的Id
 let i=0;
 var j=0;
 var loopcount=0;
@@ -197,10 +198,10 @@ var mev:number[] = new Array(gridnum);
 
 
 
-await cancel_all_orders("0x4405b50d791fd3346754e8171aaab6bc2ed26c2c46efdd033c14b30ae507ac33",account,client_sui,accountCap);
+await cancel_all_orders(poolid,account,client_sui,accountCap);
 console.log("已经清除所有挂单");
 
-const result = await getMarketPrice("0x4405b50d791fd3346754e8171aaab6bc2ed26c2c46efdd033c14b30ae507ac33",account,client_sui);
+const result = await getMarketPrice(poolid,account,client_sui);
 let BidPrice=Number(result.bestBidPrice)*0.000001
 let AskPrice=Number(result.bestAskPrice)*0.000001
 console.log("当前Bid价格"+BidPrice+",Ask价格"+AskPrice);
@@ -249,7 +250,7 @@ console.log('网格订单初始化成功，区间['+lowerprice+','+upperprice+']
 
 //维护真实OrderID数组
 var order_real_Id:BigInt[] = new Array(gridnum).fill(BigInt(0));
-let order_list=await list_open_orders("0x4405b50d791fd3346754e8171aaab6bc2ed26c2c46efdd033c14b30ae507ac33",account,client_sui,accountCap);
+let order_list=await list_open_orders(poolid,account,client_sui,accountCap);
 let list_index=0;
 while (list_index<order_list.length){
 order_real_Id[Number(BigInt(order_list[list_index].clientOrderId))]=BigInt(order_list[list_index].orderId);
@@ -264,7 +265,7 @@ var flag=0;
 var ticknum=-1;
 while (true){
 try{
-	let result_temp = await getMarketPrice("0x4405b50d791fd3346754e8171aaab6bc2ed26c2c46efdd033c14b30ae507ac33",account,client_sui);
+	let result_temp = await getMarketPrice(poolid,account,client_sui);
 	BidPrice=Number((Number(result_temp.bestBidPrice)*0.000001).toFixed(4));
 	AskPrice=Number((Number(result_temp.bestAskPrice)*0.000001).toFixed(4));
 	if (loopcount%3==0){
@@ -327,7 +328,7 @@ let	txb = new TransactionBlock();
 
 //MEV行为
 	if (MEVmode==1  & orderstates[i]==-1 & lowerprice+i*pricegap-AskPrice<0.25*pricegap  & mev[i]==0& order_real_Id[i]!=BigInt(0)& lowerprice+i*pricegap>AskPrice*1.0001){
-		await cancel_order("0x4405b50d791fd3346754e8171aaab6bc2ed26c2c46efdd033c14b30ae507ac33",account,client_sui,accountCap,order_real_Id[i],txb);
+		await cancel_order(poolid,account,client_sui,accountCap,order_real_Id[i],txb);
 		placeLimitOrder(
 				SUI_COIN_TYPE,
 				USDC_COIN_TYPE,
@@ -344,7 +345,7 @@ let	txb = new TransactionBlock();
 		flag=1;
 	}
 	if (MEVmode==1  & orderstates[i]==1 & BidPrice-lowerprice-i*pricegap<0.25*pricegap  &  mev[i]==0 & order_real_Id[i]!=BigInt(0) & lowerprice+i*pricegap<BidPrice*0.9999){
-		await cancel_order("0x4405b50d791fd3346754e8171aaab6bc2ed26c2c46efdd033c14b30ae507ac33",account,client_sui,accountCap,order_real_Id[i],txb);
+		await cancel_order(poolid,account,client_sui,accountCap,order_real_Id[i],txb);
 		placeLimitOrder(
 				SUI_COIN_TYPE,
 				USDC_COIN_TYPE,
@@ -381,7 +382,7 @@ let	txb = new TransactionBlock();
 if (flag==1 | loopcount%30==0){
 //更新真实OrderId数组
 	try{
-		let order_list=await list_open_orders("0x4405b50d791fd3346754e8171aaab6bc2ed26c2c46efdd033c14b30ae507ac33",account,client_sui,accountCap);
+		let order_list=await list_open_orders(poolid,account,client_sui,accountCap);
 		let list_index=0;
 		order_real_Id = new Array(gridnum).fill(BigInt(0));
 		while (list_index<order_list.length){
@@ -393,7 +394,7 @@ if (flag==1 | loopcount%30==0){
 			console.table(order_list,['orderId','clientOrderId','price','isBid']);
 			
 		//更新账户余额
-		let balances=await account_balances("0x4405b50d791fd3346754e8171aaab6bc2ed26c2c46efdd033c14b30ae507ac33",account,client_sui,accountCap);
+		let balances=await account_balances(poolid,account,client_sui,accountCap);
 		let base_a:number=Number((Number(balances.base_avail)*10**(-9)).toFixed(1));
 		let base_l:number=Number((Number(balances.base_locked)*10**(-9)).toFixed(1));
 		let quote_a:number=Number((Number(balances.quote_avail)*10**(-6)).toFixed(1));

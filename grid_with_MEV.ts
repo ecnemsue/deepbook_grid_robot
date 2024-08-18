@@ -400,7 +400,7 @@ if (flag==1 | loopcount%30==0){
 		let quote_a:number=Number((Number(balances.quote_avail)*10**(-6)).toFixed(1));
 		let quote_l:number=Number((Number(balances.quote_locked)*10**(-6)).toFixed(1));
 		const balance_u =(BidPrice*(base_a+base_l)+quote_a+quote_l).toFixed(1);
-		console.log('账户总价值:'+(balance_u)+'USDC,其中可用sui:'+base_a+',下单锁定sui:'+base_l+',可用USDC:'+quote_a+',锁定USDC:'+quote_l);	
+		console.log('账户总价值:'+(balance_u)+' USDC,其中可用sui:'+base_a+',下单锁定sui:'+base_l+',可用USDC:'+quote_a+',锁定USDC:'+quote_l);	
   }
 	} 
 	catch (e:any){

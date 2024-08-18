@@ -291,7 +291,7 @@ let	txb = new TransactionBlock();
 		orderstates[i]=0;
 		lastfinishnum=i;
 		}
-		if (orderstates[i]==0 & i!=lastfinishnum & quote_a>amount*(lowerprice+i*pricegap) & i+1<gridnum &(BidPrice-lowerprice-i*pricegap>pricegap+mev[i+1]*0.15*pricegap| BidPrice-lowerprice-i*pricegap>pricegap*0.7 &orderstates[i+1]==0)){
+		if (orderstates[i]==0 & i!=lastfinishnum & quote_a>amount*(lowerprice+i*pricegap) & i+1<gridnum & (BidPrice-lowerprice-i*pricegap>pricegap+mev[i+1]*0.15*pricegap| BidPrice-lowerprice-i*pricegap>pricegap*0.5 & orderstates[i+1]==0)){
 		placeLimitOrder(
 			SUI_COIN_TYPE,
 			USDC_COIN_TYPE,
@@ -308,7 +308,7 @@ let	txb = new TransactionBlock();
 			console.log("补充Bid单:"+(lowerprice+i*pricegap)+"当前最高Bid价格:"+BidPrice);
 			flag=1;
 		}
-		if (orderstates[i]==0 & i!=lastfinishnum & base_a> amount  & i-1>=0&((lowerprice+i*pricegap-AskPrice>pricegap+mev[i-1]*0.15*pricegap)| lowerprice+i*pricegap-AskPrice>pricegap*0.7 &orderstates[i-1]==0)){
+		if (orderstates[i]==0 & i!=lastfinishnum & base_a> amount  & i-1>=0 & ((lowerprice+i*pricegap-AskPrice>pricegap+mev[i-1]*0.15*pricegap)| lowerprice+i*pricegap-AskPrice>pricegap*0.5 & orderstates[i-1]==0)){
 		placeLimitOrder(
 			SUI_COIN_TYPE,
 			USDC_COIN_TYPE,

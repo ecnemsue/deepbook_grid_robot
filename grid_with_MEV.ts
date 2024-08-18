@@ -165,36 +165,16 @@ async function account_balances(poolId: string,account,client_sui,accountCap) {
 	return {base_avail: result[0], base_locked: result[1], quote_avail:result[2], quote_locked:result[3]};
 }
 
-const decodedPrivateKey=decodeSuiPrivateKey(pk0);
-const base64ToUint8Array = (base64: string) => {
-    var binaryString = atob(base64);
-    var bytes = new Uint8Array(binaryString.length);
-    for (var i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes;
-};
 
-const getsigner = (pk: string) => {
-    return Ed25519Keypair.fromSecretKey(pk);
-}; */
-
-/* const signer=getsigner(pk); */
-
-//const dex = new Dex("https://fullnode.mainnet.sui.io:443")
 const mnemonic = "envelope ...";//你的钱包助记词
 const client = new NAVISDKClient({mnemonic: mnemonic, networkType: "mainnet", numberOfAccounts: 1});
 const client_sui = new SuiClient({ url: getFullnodeUrl('mainnet') });
 let txb = new TransactionBlock();
-//const todesCoin: CoinInfo = Sui;
-//const toswapCoin: CoinInfo = vSui;
 const config = await getConfig();
 const account = client.accounts[0];
 let sender = account.getPublicKey();
 txb.setSender(sender);
 // get sui price using sdk or from else where
-//const suiPrice = await getSuiPrice();
-//const lastprice=suiPrice;
 //const PRICES_API = "https://prices.7k.ag";
 //const suiPrice = await getTokenPrice("0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI");
 

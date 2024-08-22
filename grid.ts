@@ -42,7 +42,6 @@ async function getTokenPrice(id, vsCoin = USDC_COIN_TYPE) {
 }
 
 
-
 async function placeLimitOrder(
     tokenType1,
     tokenType2,
@@ -165,32 +164,11 @@ async function account_balances(poolId: string,account,client_sui,accountCap) {
 //	console.log(result);
 	return {base_avail: result[0], base_locked: result[1], quote_avail:result[2], quote_locked:result[3]};
 }
-/* const pk0="suiprivkey1qpwpc2ffx8m9tyk5mhzrtk8a96xmyg74en5f0e5j5jystjl5qfsgxpz5yne";
 
-const decodedPrivateKey=decodeSuiPrivateKey(pk0);
-//const pk=decodedPrivateKey.secretKey;
-const base64ToUint8Array = (base64: string) => {
-    var binaryString = atob(base64);
-    var bytes = new Uint8Array(binaryString.length);
-    for (var i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes;
-};
-
-const getsigner = (pk: string) => {
-    return Ed25519Keypair.fromSecretKey(pk);
-}; */
-
-/* const signer=getsigner(pk); */
-
-//const dex = new Dex("https://fullnode.mainnet.sui.io:443")
 const mnemonic = configFile.mnemonic;
 const client = new NAVISDKClient({mnemonic: mnemonic, networkType: "mainnet", numberOfAccounts: 1});
 const client_sui = new SuiClient({ url: getFullnodeUrl('mainnet') });
 let txb = new TransactionBlock();
-//const todesCoin: CoinInfo = Sui;
-//const toswapCoin: CoinInfo = vSui;
 const config = await getConfig();
 const account = client.accounts[0];
 let sender = account.getPublicKey();
@@ -298,7 +276,7 @@ while (list_index<order_list.length){
 order_real_Id[Number(BigInt(order_list[list_index].clientOrderId))]=BigInt(order_list[list_index].orderId);
 list_index+=1;
 }
-//console.table(order_list,['orderId','clientOrderId','price','isBid']);
+
 
 await setTimeout(5000);
 var flag=0;
@@ -371,7 +349,7 @@ let	txb = new TransactionBlock();
 		
 	i+=1;
 
-//MEV行为
+//额外mode行为
 	if (MEVmode==1 &base_a> amount & orderstates[i]==-1 & lowerprice+i*pricegap-AskPrice<MEV_scale*1.5*pricegap  & mev[i]==0& order_real_Id[i]!=BigInt(0)& lowerprice+i*pricegap>AskPrice*1.0001){
 		await cancel_order(poolId,account,client_sui,accountCap,order_real_Id[i],txb);
 		placeLimitOrder(

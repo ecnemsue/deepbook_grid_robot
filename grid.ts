@@ -325,6 +325,7 @@ let	txb = new TransactionBlock();
 			txb,
 			i);
 			orderstates[i]=1;
+			order_real_Id[i]=BigInt(-1);
 			mev[i]=0;
 			console.log("补充Bid单:"+(lowerprice+i*pricegap)+"当前最高Bid价格:"+BidPrice);
 			flag=1;
@@ -342,6 +343,7 @@ let	txb = new TransactionBlock();
 			txb,
 			i);
 			orderstates[i]=-1;
+			order_real_Id[i]=BigInt(-1);
 			mev[i]=0;
 			console.log("补充Ask单:"+(lowerprice+i*pricegap)+"当前最低Ask价格:"+AskPrice);
 			flag=1;

@@ -16,5 +16,8 @@
   "expireTimestamp": 1773961013385,
   "sleepperiod": 2500,
   "trend_adj_mode": 1,
-  "trend_adj_scale": 0.1
+  "trend_adj_scale": 0.1,
+  "equi_ratio_mode":0,
+  "priceratiogap":1.004,
+  "price_decimals":4
 }

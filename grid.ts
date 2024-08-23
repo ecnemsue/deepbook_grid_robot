@@ -30,6 +30,22 @@ const SUI_COIN_TYPE = configFile.BASE_COIN_TYPE;
 const USDC_COIN_TYPE =configFile.QUOTE_COIN_TYPE;
 const poolId = configFile.poolId;//SUI-USDC pool
 
+function fixed(int, n=4):number{
+	return Number(int.toFixed(n));
+}
+
+
+function init_girdprice(iseqratio,gridnum,lowerprice,pricegap,priceratiogap,decimals){
+	if (gridnum<=0){return;}
+	let price:number[] = new Array(gridnum);
+	let sum=0;
+	for(i=0;i<gridnum;i++){
+	price[i]= fixed(iseqratio==1? lowerprice*(priceratiogap**i): lowerprice+pricegap*i,decimals);
+	sum+=price[i];
+	}
+	return [price,sum];
+}
+
 async function getTokenPrice(id, vsCoin = USDC_COIN_TYPE) {
     try {
         const response = await fetch(`${PRICES_API}/price?ids=${id}&vsCoin=${vsCoin}`);
@@ -40,6 +56,7 @@ async function getTokenPrice(id, vsCoin = USDC_COIN_TYPE) {
         return 0;
     }
 }
+
 
 
 async function placeLimitOrder(
@@ -165,10 +182,18 @@ async function account_balances(poolId: string,account,client_sui,accountCap) {
 	return {base_avail: result[0], base_locked: result[1], quote_avail:result[2], quote_locked:result[3]};
 }
 
+
+
+
+/* const signer=getsigner(pk); */
+
+//const dex = new Dex("https://fullnode.mainnet.sui.io:443")
 const mnemonic = configFile.mnemonic;
 const client = new NAVISDKClient({mnemonic: mnemonic, networkType: "mainnet", numberOfAccounts: 1});
 const client_sui = new SuiClient({ url: getFullnodeUrl('mainnet') });
 let txb = new TransactionBlock();
+//const todesCoin: CoinInfo = Sui;
+//const toswapCoin: CoinInfo = vSui;
 const config = await getConfig();
 const account = client.accounts[0];
 let sender = account.getPublicKey();
@@ -182,19 +207,40 @@ txb.setSender(sender);
 
 
 // 从config文件中获取变量
+const equi_ratio_mode=configFile.equi_ratio_mode;//等比网格模式
 const lowerprice = configFile.lowerprice;//网格运行最低价格
 const gridnum = configFile.gridnum;//网格数量
 const amount = configFile.amount;//每网格下单的SUI的数量
 const gridamount=amount * 10 **9;
 const pricegap = configFile.pricegap;//相邻网格之间的价差
-const upperprice=lowerprice+gridnum*pricegap;//网格运行最高价格
+const upperprice=equi_ratio_mode==1? lowerprice*(priceratiogap**gridnum) : lowerprice+gridnum*pricegap;//网格运行最高价格
 const accountCap = configFile.accountCap;//托管子账户地址，可以去CETUS上DEEPBOOK的UI里查看地址，并存入代币
 const expireTimestamp = configFile.expireTimestamp;//过期时间
 const sleepperiod = configFile.sleepperiod;//循环周期：2.5秒
 const MEVmode = configFile.trend_adj_mode; //开启trend_adj模式
 const MEV_scale = configFile.trend_adj_scale;
+const priceratiogap=configFile.priceratiogap;////相邻网格之间的价比(等比模式)
+const price_decimals=configFile.price_decimals;//价格精度(小数点)
 
 
+
+
+const [grid_price, pricesum] = init_girdprice(equi_ratio_mode,gridnum,lowerprice,pricegap,priceratiogap,price_decimals);
+/*
+const lowerprice=0.757;//网格运行最低价格
+const gridnum=55;//网格数量
+const amount=70;//每网格下单的SUI的数量
+const gridamount=amount * 10 **9;
+const pricegap=0.004;//相邻网格之间的价差
+const upperprice=lowerprice+gridnum*pricegap//网格运行最高价格
+const accountCap='0x770cbeb75fd2bd48e85e91717b0f4672ac0831e05d71c8be7a9abd4938c4586f'; //托管子账户地址，可以去CETUS上DEEPBOOK的UI里查看地址，并存入代币
+const expireTimestamp=1773961013385;//过期时间
+
+const sleepperiod=2500; //循环周期：2.5秒
+const MEVmode=1;//开启MEV模式
+const MEV_scale=0.1;
+
+*/
 let i=0;
 var j=0;
 var loopcount=0;
@@ -215,12 +261,12 @@ let lastAskprice=AskPrice;
 
 await setTimeout(2000);
 while (i<gridnum){
-if (lowerprice+i*pricegap<BidPrice){
+if (grid_price[i]<BidPrice){
 
 placeLimitOrder(
     SUI_COIN_TYPE,
     USDC_COIN_TYPE,
-    lowerprice+i*pricegap,
+    grid_price[i],
     gridamount,
     true,
     expireTimestamp,
@@ -231,11 +277,11 @@ placeLimitOrder(
 	orderstates[i]=1;
 	mev[i]=0;
 }
-if (lowerprice+i*pricegap>AskPrice){
+if (grid_price[i]>AskPrice){
 placeLimitOrder(
     SUI_COIN_TYPE,
     USDC_COIN_TYPE,
-    lowerprice+i*pricegap,
+    grid_price[i],
     gridamount,
     false,
     expireTimestamp,
@@ -276,7 +322,7 @@ while (list_index<order_list.length){
 order_real_Id[Number(BigInt(order_list[list_index].clientOrderId))]=BigInt(order_list[list_index].orderId);
 list_index+=1;
 }
-
+//console.table(order_list,['orderId','clientOrderId','price','isBid']);
 
 await setTimeout(5000);
 var flag=0;
@@ -303,20 +349,20 @@ if (BidPrice>lowerprice-pricegap*2 & AskPrice<upperprice+pricegap*2){
 let	txb = new TransactionBlock();
 	txb.setSender(sender);
 	while (i<gridnum){
-		if ((lowerprice+i*pricegap+mev[i]*MEV_scale*pricegap<AskPrice & orderstates[i]==-1)| ( orderstates[i]==1 & lowerprice+i*pricegap-mev[i]*MEV_scale*pricegap>BidPrice)|(order_real_Id[i]==BigInt(0) & orderstates[i]!=0)){
+		if ((grid_price[i]+mev[i]*MEV_scale*pricegap<AskPrice & orderstates[i]==-1)| ( orderstates[i]==1 & grid_price[i]-mev[i]*MEV_scale*pricegap>BidPrice)|(order_real_Id[i]==BigInt(0) & orderstates[i]!=0)){
 		j+=1;
-		console.log((orderstates[i]==1?"Bid单:":"Ask单:")+(lowerprice+i*pricegap-orderstates[i]*mev[i]*MEV_scale*pricegap)+",Id="+order_real_Id[i]+"已成交，总成交量:"+j*amount);
+		console.log((orderstates[i]==1?"Bid单:":"Ask单:")+(grid_price[i]-orderstates[i]*mev[i]*MEV_scale*pricegap)+",Id="+order_real_Id[i]+"已成交，总成交量:"+j*amount);
 		orderstates[i]=0;
 		flag_fin=1;
-		if (Math.abs(lowerprice+i*pricegap-BidPrice)<Math.abs(lastfinishnum-BidPrice)| flag_fin==0){
+		if (Math.abs(grid_price[i]-BidPrice)<Math.abs(lastfinishnum-BidPrice)| flag_fin==0){
 			lastfinishnum=i;
 		}
 		}
-		if (orderstates[i]==0 & i!=lastfinishnum & quote_a>amount*(lowerprice+i*pricegap) & i+1<gridnum & (BidPrice-lowerprice-i*pricegap>pricegap+mev[i+1]*MEV_scale*pricegap| BidPrice-lowerprice-i*pricegap>pricegap*0.4 &orderstates[i+1]==0)){
+		if (orderstates[i]==0 & i!=lastfinishnum & quote_a>amount*(grid_price[i]) & i+1<gridnum & (BidPrice-lowerprice-i*pricegap>pricegap+mev[i+1]*MEV_scale*pricegap| BidPrice-lowerprice-i*pricegap>pricegap*0.4 &orderstates[i+1]==0)){
 		placeLimitOrder(
 			SUI_COIN_TYPE,
 			USDC_COIN_TYPE,
-			lowerprice+i*pricegap,
+			grid_price[i],
 			gridamount,
 			true,
 			expireTimestamp,
@@ -325,16 +371,16 @@ let	txb = new TransactionBlock();
 			txb,
 			i);
 			orderstates[i]=1;
-			order_real_Id[i]=BigInt(-1);
 			mev[i]=0;
-			console.log("补充Bid单:"+(lowerprice+i*pricegap)+"当前最高Bid价格:"+BidPrice);
+			order_real_Id[i]=BigInt(-1);
+			console.log("补充Bid单:"+(grid_price[i])+"当前最高Bid价格:"+BidPrice);
 			flag=1;
 		}
-		if (orderstates[i]==0 & i!=lastfinishnum &base_a> amount  & i-1>=0 & ((lowerprice+i*pricegap-AskPrice>pricegap+mev[i-1]*MEV_scale*pricegap)| (lowerprice+i*pricegap-AskPrice>pricegap*0.4 & orderstates[i-1]==0))){
+		if (orderstates[i]==0 & i!=lastfinishnum &base_a> amount  & i-1>=0 & ((grid_price[i]-AskPrice>pricegap+mev[i-1]*MEV_scale*pricegap)| (grid_price[i]-AskPrice>pricegap*0.4 & orderstates[i-1]==0))){
 		placeLimitOrder(
 			SUI_COIN_TYPE,
 			USDC_COIN_TYPE,
-			lowerprice+i*pricegap,
+			grid_price[i],
 			gridamount,
 			false,
 			expireTimestamp,
@@ -345,19 +391,19 @@ let	txb = new TransactionBlock();
 			orderstates[i]=-1;
 			order_real_Id[i]=BigInt(-1);
 			mev[i]=0;
-			console.log("补充Ask单:"+(lowerprice+i*pricegap)+"当前最低Ask价格:"+AskPrice);
+			console.log("补充Ask单:"+(grid_price[i])+"当前最低Ask价格:"+AskPrice);
 			flag=1;
 		}
 		
 	i+=1;
 
-//额外mode行为
-	if (MEVmode==1 &base_a> amount & orderstates[i]==-1 & lowerprice+i*pricegap-AskPrice<MEV_scale*1.5*pricegap  & mev[i]==0& order_real_Id[i]!=BigInt(0)& lowerprice+i*pricegap>AskPrice*1.0001){
+//MEV行为
+	if (MEVmode==1 &base_a> amount & orderstates[i]==-1 & grid_price[i]-AskPrice<MEV_scale*1.5*pricegap  & mev[i]==0& order_real_Id[i]!=BigInt(0)& grid_price[i]>AskPrice*1.0001){
 		await cancel_order(poolId,account,client_sui,accountCap,order_real_Id[i],txb);
 		placeLimitOrder(
 				SUI_COIN_TYPE,
 				USDC_COIN_TYPE,
-				lowerprice+i*pricegap+MEV_scale*pricegap,
+				grid_price[i]+MEV_scale*pricegap,
 				gridamount,
 				false,
 				expireTimestamp,
@@ -365,16 +411,16 @@ let	txb = new TransactionBlock();
 				accountCap,
 				txb,
 				i);	
-		console.log('尝试调整订单价格'+(lowerprice+i*pricegap)+ '，当前最低Ask价格：'+AskPrice);
+		console.log('尝试调整订单价格'+(grid_price[i])+ '，当前最低Ask价格：'+AskPrice);
 		ticknum=i;
 		flag=1;
 	}
-	if (MEVmode==1  &quote_a>amount*(lowerprice+i*pricegap)	 & orderstates[i]==1 & BidPrice-lowerprice-i*pricegap<MEV_scale*1.5*pricegap  &  mev[i]==0 & order_real_Id[i]!=BigInt(0) & lowerprice+i*pricegap<BidPrice*0.9999){
+	if (MEVmode==1  &quote_a>amount*(grid_price[i])	 & orderstates[i]==1 & BidPrice-lowerprice-i*pricegap<MEV_scale*1.5*pricegap  &  mev[i]==0 & order_real_Id[i]!=BigInt(0) & grid_price[i]<BidPrice*0.9999){
 		cancel_order(poolId,account,client_sui,accountCap,order_real_Id[i],txb);
 		placeLimitOrder(
 				SUI_COIN_TYPE,
 				USDC_COIN_TYPE,
-				lowerprice+i*pricegap-MEV_scale*pricegap,
+				grid_price[i]-MEV_scale*pricegap,
 				gridamount,
 				true,
 				expireTimestamp,
@@ -382,7 +428,7 @@ let	txb = new TransactionBlock();
 				accountCap,
 				txb,
 				i);		
-		console.log('尝试调整订单价格'+(lowerprice+i*pricegap)+'，当前最低Bid价格：'+BidPrice);
+		console.log('尝试调整订单价格'+(grid_price[i])+'，当前最低Bid价格：'+BidPrice);
 		ticknum=i;
 		flag=1;	
 	}

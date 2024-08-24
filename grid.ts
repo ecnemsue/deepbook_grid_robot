@@ -209,7 +209,7 @@ txb.setSender(sender);
 const equi_ratio_mode=configFile.equi_ratio_mode;//等比网格模式
 const lowerprice = configFile.lowerprice;//网格运行最低价格
 const gridnum = configFile.gridnum;//网格数量
-const amount = configFile.amount;//每网格下单的SUI的数量
+const amount = fixed(configFile.amount,2);//每网格下单的SUI的数量
 const gridamount=amount * 10 **9;
 const pricegap = configFile.pricegap;//相邻网格之间的价差
 const upperprice=equi_ratio_mode==1? lowerprice*(priceratiogap**gridnum) : lowerprice+gridnum*pricegap;//网格运行最高价格

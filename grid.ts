@@ -211,14 +211,14 @@ const lowerprice = configFile.lowerprice;//网格运行最低价格
 const gridnum = configFile.gridnum;//网格数量
 const amount = fixed(configFile.amount,2);//每网格下单的SUI的数量
 const gridamount=amount * 10 **9;
-const pricegap = configFile.pricegap;//相邻网格之间的价差
+const pricegap = configFile.pricegap;//相邻网格之间的价差(等差模式)
+const priceratiogap=configFile.priceratiogap;////相邻网格之间的价比(等比模式)
 const upperprice=equi_ratio_mode==1? lowerprice*(priceratiogap**gridnum) : lowerprice+gridnum*pricegap;//网格运行最高价格
 const accountCap = configFile.accountCap;//托管子账户地址，可以去CETUS上DEEPBOOK的UI里查看地址，并存入代币
 const expireTimestamp = configFile.expireTimestamp;//过期时间
 const sleepperiod = configFile.sleepperiod;//循环周期：2.5秒
 const MEVmode = configFile.trend_adj_mode; //开启trend_adj模式
 const MEV_scale = configFile.trend_adj_scale;
-const priceratiogap=configFile.priceratiogap;////相邻网格之间的价比(等比模式)
 const price_decimals=configFile.price_decimals;//价格精度(小数点)
 
 

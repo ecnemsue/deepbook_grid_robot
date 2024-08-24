@@ -31,19 +31,20 @@ const USDC_COIN_TYPE =configFile.QUOTE_COIN_TYPE;
 const poolId = configFile.poolId;//SUI-USDC pool
 
 function fixed(int, n=4):number{
-	return Number(int.toFixed(n));
+return Number(int.toFixed(n));
 }
 
 
 function init_girdprice(iseqratio,gridnum,lowerprice,pricegap,priceratiogap,decimals){
-	if (gridnum<=0){return;}
-	let price:number[] = new Array(gridnum);
-	let sum=0;
-	for(i=0;i<gridnum;i++){
-	price[i]= fixed(iseqratio==1? lowerprice*(priceratiogap**i): lowerprice+pricegap*i,decimals);
-	sum+=price[i];
-	}
-	return [price,sum];
+if (gridnum<=0){return;}
+
+let price:number[] = new Array(gridnum);
+let sum=0;
+for(let i=0;i<gridnum;i++){
+price[i]= fixed(iseqratio==1? lowerprice*(priceratiogap**i): lowerprice+pricegap*i,decimals);
+sum+=price[i];
+}
+return [price,sum];
 }
 
 async function getTokenPrice(id, vsCoin = USDC_COIN_TYPE) {
@@ -185,9 +186,7 @@ async function account_balances(poolId: string,account,client_sui,accountCap) {
 
 
 
-/* const signer=getsigner(pk); */
 
-//const dex = new Dex("https://fullnode.mainnet.sui.io:443")
 const mnemonic = configFile.mnemonic;
 const client = new NAVISDKClient({mnemonic: mnemonic, networkType: "mainnet", numberOfAccounts: 1});
 const client_sui = new SuiClient({ url: getFullnodeUrl('mainnet') });
@@ -226,21 +225,9 @@ const price_decimals=configFile.price_decimals;//价格精度(小数点)
 
 
 const [grid_price, pricesum] = init_girdprice(equi_ratio_mode,gridnum,lowerprice,pricegap,priceratiogap,price_decimals);
-/*
-const lowerprice=0.757;//网格运行最低价格
-const gridnum=55;//网格数量
-const amount=70;//每网格下单的SUI的数量
-const gridamount=amount * 10 **9;
-const pricegap=0.004;//相邻网格之间的价差
-const upperprice=lowerprice+gridnum*pricegap//网格运行最高价格
-const accountCap='0x770cbeb75fd2bd48e85e91717b0f4672ac0831e05d71c8be7a9abd4938c4586f'; //托管子账户地址，可以去CETUS上DEEPBOOK的UI里查看地址，并存入代币
-const expireTimestamp=1773961013385;//过期时间
 
-const sleepperiod=2500; //循环周期：2.5秒
-const MEVmode=1;//开启MEV模式
-const MEV_scale=0.1;
 
-*/
+
 let i=0;
 var j=0;
 var loopcount=0;
@@ -358,7 +345,7 @@ let	txb = new TransactionBlock();
 			lastfinishnum=i;
 		}
 		}
-		if (orderstates[i]==0 & i!=lastfinishnum & quote_a>amount*(grid_price[i]) & i+1<gridnum & (BidPrice-lowerprice-i*pricegap>pricegap+mev[i+1]*MEV_scale*pricegap| BidPrice-lowerprice-i*pricegap>pricegap*0.4 &orderstates[i+1]==0)){
+		if (orderstates[i]==0 & i!=lastfinishnum & quote_a>amount*(grid_price[i]) & i+1<gridnum & (BidPrice-grid_price[i]>pricegap+mev[i+1]*MEV_scale*pricegap| BidPrice-grid_price[i]>pricegap*0.4 &orderstates[i+1]==0)){
 		placeLimitOrder(
 			SUI_COIN_TYPE,
 			USDC_COIN_TYPE,
@@ -398,7 +385,7 @@ let	txb = new TransactionBlock();
 	i+=1;
 
 //MEV行为
-	if (MEVmode==1 &base_a> amount & orderstates[i]==-1 & grid_price[i]-AskPrice<MEV_scale*1.5*pricegap  & mev[i]==0& order_real_Id[i]!=BigInt(0)& grid_price[i]>AskPrice*1.0001){
+	if (MEVmode==1& equi_ratio_mode!=1 &base_a> amount & orderstates[i]==-1 & grid_price[i]-AskPrice<MEV_scale*1.5*pricegap  & mev[i]==0& order_real_Id[i]!=BigInt(0)& grid_price[i]>AskPrice*1.0001){
 		await cancel_order(poolId,account,client_sui,accountCap,order_real_Id[i],txb);
 		placeLimitOrder(
 				SUI_COIN_TYPE,
@@ -415,7 +402,7 @@ let	txb = new TransactionBlock();
 		ticknum=i;
 		flag=1;
 	}
-	if (MEVmode==1  &quote_a>amount*(grid_price[i])	 & orderstates[i]==1 & BidPrice-lowerprice-i*pricegap<MEV_scale*1.5*pricegap  &  mev[i]==0 & order_real_Id[i]!=BigInt(0) & grid_price[i]<BidPrice*0.9999){
+	if (MEVmode==1 & equi_ratio_mode!=1 &quote_a>amount*(grid_price[i])	 & orderstates[i]==1 & BidPrice-lowerprice-i*pricegap<MEV_scale*1.5*pricegap  &  mev[i]==0 & order_real_Id[i]!=BigInt(0) & grid_price[i]<BidPrice*0.9999){
 		cancel_order(poolId,account,client_sui,accountCap,order_real_Id[i],txb);
 		placeLimitOrder(
 				SUI_COIN_TYPE,

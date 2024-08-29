@@ -99,7 +99,7 @@ async function getMarketPrice(poolId: string,account,client_sui) {
 			target: `0xdee9::clob_v2::get_market_price`,
 			arguments: [txb.object(poolId)],
 		});
-		sender=account.getPublicKey();
+		let sender=account.getPublicKey();
 		const result=(await client_sui.devInspectTransactionBlock({transactionBlock:txb, sender: sender})).results[0].returnValues.map(([bytes, _]) => {
       const opt = bcs.option(bcs.u64()).parse(Uint8Array.from(bytes));
       return opt == null ? void 0 : BigInt(opt);
@@ -115,7 +115,7 @@ async function cancel_all_orders(poolId: string,account,client_sui,accountCap) {
 			txb.object(normalizeSuiObjectId(accountCap)),
 			],
 		});
-	sender=account.getPublicKey();
+	let sender=account.getPublicKey();
 	txb.setSender(sender);
 	txb.setGasBudget(1000000000);
 	await SignAndSubmitTXB(txb, account.client, account.keypair);
@@ -144,7 +144,7 @@ async function list_open_orders(poolId: string,account,client_sui,accountCap) {
 			txb.object(normalizeSuiObjectId(accountCap)),
 			],
 		});
-	sender=account.getPublicKey();
+	let sender=account.getPublicKey();
 	txb.setSender(sender);
 	txb.setGasBudget(1000000000);
 	const Order = bcs.struct('Order', {
@@ -172,7 +172,7 @@ async function account_balances(poolId: string,account,client_sui,accountCap) {
 			txb.object(accountCap),
 			],
 		});
-	sender=account.getPublicKey();
+	let sender=account.getPublicKey();
 	txb.setSender(sender);
 	txb.setGasBudget(1000000000);
 	const result=(await client_sui.devInspectTransactionBlock({transactionBlock:txb, sender: sender})).results[0].returnValues.map(([bytes, _]) => {
@@ -184,9 +184,11 @@ async function account_balances(poolId: string,account,client_sui,accountCap) {
 }
 
 
+async function main() {
 
+/* const signer=getsigner(pk); */
 
-
+//const dex = new Dex("https://fullnode.mainnet.sui.io:443")
 const mnemonic = configFile.mnemonic;
 const client = new NAVISDKClient({mnemonic: mnemonic, networkType: "mainnet", numberOfAccounts: 1});
 const client_sui = new SuiClient({ url: getFullnodeUrl('mainnet') });
@@ -225,8 +227,6 @@ const price_decimals=configFile.price_decimals;//价格精度(小数点)
 
 
 const [grid_price, pricesum] = init_girdprice(equi_ratio_mode,gridnum,lowerprice,pricegap,priceratiogap,price_decimals);
-
-
 
 let i=0;
 var j=0;
@@ -288,7 +288,7 @@ if (result1=='success'){
 console.log('网格订单初始化成功，区间['+lowerprice+','+upperprice+'],网格数量'+gridnum+'.', result1.confirmedLocalExecution);
 }
 else{
-console.log('网格订单初始化失败!');
+console.log('网格订单初始化失败! 请检查托管账户余额是否充足');
 return;
 }
 
@@ -437,7 +437,7 @@ let	txb = new TransactionBlock();
 	
 }
 
-if (flag==1 | loopcount%30==0){
+if (flag==1 | loopcount%15==0){
 //更新真实OrderId数组
 	try{
 		let order_list=await list_open_orders(poolId,account,client_sui,accountCap);
@@ -473,7 +473,8 @@ loopcount+=1;
 ticknum=-1;
 await setTimeout(sleepperiod);
 }
-
+}
+main().then().catch(console.warn);
 
 
 

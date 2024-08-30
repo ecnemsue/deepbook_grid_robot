@@ -341,7 +341,7 @@ let	txb = new TransactionBlock();
 		console.log((orderstates[i]==1?"Bid单:":"Ask单:")+(grid_price[i]-orderstates[i]*mev[i]*MEV_scale*pricegap)+",Id="+order_real_Id[i]+"已成交，总成交量:"+j*amount);
 		orderstates[i]=0;
 		flag_fin=1;
-		if (Math.abs(grid_price[i]-BidPrice)<Math.abs(lastfinishnum-BidPrice)| flag_fin==0){
+		if (Math.abs(grid_price[i]-BidPrice)<Math.abs(grid_price[lastfinishnum]-BidPrice)| flag_fin==0){
 			lastfinishnum=i;
 		}
 		}

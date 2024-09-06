@@ -361,7 +361,7 @@ let	txb = new TransactionBlock();
 		}
 		
 		
-		if (orderstates[i]==0 & i!=lastfinishnum & quote_a>amount*(grid_price[i]) & i+1<gridnum & (BidPrice-grid_price[i]>pricegap+mev[i+1]*MEV_scale*pricegap| BidPrice-grid_price[i]>pricegap*0.5 &orderstates[i+1]==0)){
+		if (orderstates[i]==0 & i!=lastfinishnum & quote_a>amount*(grid_price[i]) & i+1<gridnum & (BidPrice-grid_price[i]>pricegap+mev[i+1]*MEV_scale*pricegap| BidPrice-grid_price[i]>pricegap*-0.5 &orderstates[i+1]==0)){
 		placeLimitOrder(
 			SUI_COIN_TYPE,
 			USDC_COIN_TYPE,
@@ -379,7 +379,7 @@ let	txb = new TransactionBlock();
 			console.log("补充Bid单:"+(grid_price[i])+"当前最高Bid价格:"+BidPrice);
 			flag=1;
 		}
-		if (orderstates[i]==0 & i!=lastfinishnum & base_a> amount  & i-1>=0 & ((grid_price[i]-AskPrice>pricegap+mev[i-1]*MEV_scale*pricegap)| (grid_price[i]-AskPrice>pricegap*0.5 & orderstates[i-1]==0))){
+		if (orderstates[i]==0 & i!=lastfinishnum & base_a> amount  & i-1>=0 & ((grid_price[i]-AskPrice>pricegap+mev[i-1]*MEV_scale*pricegap)| (grid_price[i]-AskPrice>pricegap*-0.5 & orderstates[i-1]==0))){
 		placeLimitOrder(
 			SUI_COIN_TYPE,
 			USDC_COIN_TYPE,
